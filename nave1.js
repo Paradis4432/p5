@@ -70,12 +70,9 @@ function draw() {
     data.push(["vy", nave.vy])
     data.push(["ax", nave.ax])
     data.push(["ay", nave.ay])
-    data.push(["ang", nave.ang])
-    data.push(["vang", nave.vang])
-    data.push(["aang", nave.aang])
+    
     data.push(["masa", nave.masa])
 
-    mostrarText(data)
 
     // Aplico una fricción proporcional y opuesta a la velocidad de la nave
     var fuerzaFriccion = {
@@ -98,6 +95,11 @@ function draw() {
 
     // Calculo las ecuaciones de movimiento
     calcularFisicas(nave, dt)
+    data.push(["ang", nave.ang])
+    data.push(["vang", nave.vang])
+    data.push(["aang", nave.aang])
+    nave.aang = 0
+    mostrarText(data)
 
     // Dibujado de la nave
     translate(nave.x, nave.y)
@@ -157,7 +159,7 @@ function calcularFisicas(cuerpo, dt) {
     cuerpo.ang += cuerpo.vang * dt
 
     // reinicio todas las aceleraciones
-    cuerpo.aang = 0
+    
     cuerpo.ax = 0
     cuerpo.ay = 0
 }
