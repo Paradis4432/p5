@@ -9,28 +9,35 @@ var nave = {
 }
 var multiplicadorCohete = 300
 var multiplicadorDisparo = 7000
-var torqueGiro = 3000
+var torqueGiro = 7000
 var multiplicadorFriccion = 0
 var multiplicadorFriccionGiro = 1500
 var bullets = [];
 var meters = [];
 var meterSpawnTime = 60;
 var meterSpawnTimeCounter = 0;
+var estrellas = []
 
 const H = 900; const W = 900
 function setup() {
     createCanvas(H, W);
+    for (let i = 0; i < W; i++) {
+        let r = getRandomInt(H)
+        if (r % 2 == 0 && i % 2 == 0) estrellas.push({ i, r })
+
+        
+    }
 }
 let fuerzaCohete = { x: 0, y: 0 }
 
 function draw() {
-    background(220);
+    background(0); // sacar para hyperspacio
+
     var dt = deltaTime / 1000
-    
+    let data = []
 
     meterSpawnTimeCounter++
     if (meterSpawnTime == meterSpawnTimeCounter && nave.vivo) {
-        console.log("3 segundos")
         meterSpawnTimeCounter = 0
 
         let r = getRandomInt(4)
@@ -105,7 +112,6 @@ function draw() {
         aplicarFuerza(nave, -fuerzaCohete.x, -fuerzaCohete.y)
     }
 
-    let data = []
     data.push(["x", nave.x])
     data.push(["y", nave.y])
     data.push(["vx", nave.vx])
@@ -136,8 +142,15 @@ function draw() {
     data.push(["ang", nave.ang])
     data.push(["vang", nave.vang])
     data.push(["aang", nave.aang])
+    data.push(["timer", meterSpawnTimeCounter])
     nave.aang = 0
     mostrarText(data)
+
+    for (let estrella = 0; estrella < estrellas.length; estrella++) {
+        const es = estrellas[estrella];
+        fill("white")
+        circle(es.i, es.r, 3)
+    }
 
     // Dibujado de la nave
     translate(nave.x, nave.y)
@@ -164,6 +177,7 @@ function draw() {
         if (nave.vivo) meters[i].move();
         meters[i].show();
     }
+    
 }
 
 function keyPressed() {
@@ -193,6 +207,7 @@ function Bullet(X, Y, PX, PY) {
     this.r = 5;
 
     this.show = function () {
+        fill("red")
         circle(this.x, this.y, this.r);
     }
     this.toMouse = function () {
@@ -202,15 +217,14 @@ function Bullet(X, Y, PX, PY) {
 }
 
 function Meteorito(X, Y, PX, PY) {
-    this.speed = 3;
+    this.speed = 2;
     this.x = PX;
     this.y = PY;
     this.dir = createVector(X - PX, Y - PY).normalize();
     this.r = 30;
     this.show = function () {
-        fill("brown")
+        fill("grey")
         circle(this.x, this.y, this.r)
-        fill("black")
 
     }
     this.move = function () {
