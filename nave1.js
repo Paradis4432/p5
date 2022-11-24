@@ -17,7 +17,9 @@ var meters = [];
 var meterSpawnTime = 60;
 var meterSpawnTimeCounter = 0;
 var estrellas = []
-
+var pressedSegs = 0
+var puntaje = 0
+var metersSpawneados = 0
 const H = 900; const W = 900
 function setup() {
     createCanvas(H, W);
@@ -38,24 +40,33 @@ function draw() {
     meterSpawnTimeCounter++
     if (meterSpawnTime == meterSpawnTimeCounter && nave.vivo) {
         meterSpawnTimeCounter = 0
-
+        var vtmp 
+        var ctmp
         let r = getRandomInt(4)
+        metersSpawneados++
+        if(metersSpawneados % 5 == 0){
+          vtmp = 2
+          ctmp = "red"
+        } else {
+          vtmp = 1
+          ctmp = "rgb(163,158,158)"
+        }
         switch (r) {
             case 0:
                 // left wall
-                meters.push(new Meteorito(nave.x, nave.y, 0, random(H)))
+                meters.push(new Meteorito(nave.x, nave.y, 0, random(H),vtmp,ctmp))
                 break;
             case 1:
                 // right wall
-                meters.push(new Meteorito(nave.x, nave.y, W, random(H)))
+                meters.push(new Meteorito(nave.x, nave.y, W, random(H),vtmp,ctmp))
                 break;
             case 2:
                 // top wall
-                meters.push(new Meteorito(nave.x, nave.y, random(W), 0))
+                meters.push(new Meteorito(nave.x, nave.y, random(W),0,vtmp,ctmp))
                 break;
             case 3:
                 // bottom wall
-                meters.push(new Meteorito(nave.x, nave.y, random(W), H))
+                meters.push(new Meteorito(nave.x, nave.y, random(W), H,vtmp,ctmp))
                 break;
             default:
                 break;
@@ -63,13 +74,25 @@ function draw() {
     }
 
     if (nave.x < 0 || nave.x > W || nave.y < 0 || nave.y > H) {
-        text("PERDISTE r para reinicar", 450, 450)
+      textSize(32)
+      fill("red")
+        text("Volaste fuera del espacio!",450, 400)
+        text("PERDISTE R para reinicar", 450, 450)
+      
         nave.vivo = false
         meterSpawnTimeCounter = 0
+      metersSpawneados = 0
     }
-
+  textSize(50)
+  fill("grey")
+  text(puntaje, 800, 100) 
+  textSize(12)
+    
+    if(!keyIsDown(UP_ARROW)) pressedSegs = 0
     // Si tengo presionada la tecla de arriba...
     if (keyIsDown(UP_ARROW) && nave.vivo) {
+      pressed = true
+      pressedSegs += 1
         // Obtengo la dirección de la nave con trigonometría.
         // Esto me da un vector de longitud 1
         var direccionNave = {
@@ -152,19 +175,28 @@ function draw() {
     translate(nave.x, nave.y)
     rotate(nave.ang)
     rectMode(CENTER)
-
+  
+      fill("#2196F3")
+      if(pressedSegs > 0) rect(-30,0,10,-25)
+      fill("#03A9F4")
+      if(pressedSegs > 30)rect(-35,0,8,-20)
+      fill("#00BCD4")
+      if(pressedSegs > 60)rect(-40,0,6,-15)
     
     fill("gray")
-    circle(20, 0, 40)
+    circle(0,0,50)
+  
+    circle(12, 0, 40)
     fill("cyan")
-    circle(20, 0, 30)
+    circle(12, 0, 30)
     fill("gray")
-    rect(0, 0, 40, 40)
-    rect(-25, 0, 10, 30)
+    //rect(0, 0, 40, 40)
+    rect(-20, 0, 10, 30)
 
-    //fill("white")
     //circle(-12,0,40)
     //circle(19,0,40)
+    
+    
 
     resetMatrix() // vuelvo la hoja a su lugar
 
@@ -186,11 +218,13 @@ function draw() {
             if (index > -1) meters.splice(index, 1)
         }
 
-        dC0 = dist(m.x, m.y, nave.x - 12, nave.y) < ((m.r / 2) + (20))
-        dC1 = dist(m.x, m.y, nave.x + 19, nave.y) < ((m.r / 2) + (20))
+        dC0 = dist(m.x, m.y, nave.x, nave.y) < ((m.r / 2) + (26))
+        //dC1 = dist(m.x, m.y, nave.x + 19, nave.y) < ((m.r / 2) + (20))
 
-        if (dC0 || dC1) {
-            text("PERDISTE r para reinicar", 450, 450)
+        if (dC0) {
+            fill("red")
+            textSize(32)
+            text("PERDISTE! R para reinicar", 450, 450)
             nave.vivo = false
             meterSpawnTimeCounter = 0
         }
@@ -200,13 +234,21 @@ function draw() {
 
             bullMeterColl = dist(m.x, m.y, b.x, b.y) < ((m.r / 2) + (b.r))
             if (!bullMeterColl) continue
-
+            
+            
             let mindex = meters.indexOf(m)
             let bindex = bullets.indexOf(b)
 
             if (mindex > -1 && bindex > -1){
+              if(m.vida == 2){
+                m.vida--
+                bullets.splice(bindex, 1)
+                continue
+              }
                 meters.splice(mindex, 1)
                 bullets.splice(bindex, 1)
+            puntaje += 1
+                
 
             }
         }
@@ -232,6 +274,7 @@ function keyPressed() {
         nave.vivo = true
         bullets = []
         meters = []
+        puntaje = 0
     }
 
 }
@@ -253,26 +296,21 @@ function Bullet(X, Y, PX, PY) {
     }
 }
 
-function Meteorito(X, Y, PX, PY) {
+function Meteorito(X, Y, PX, PY, vida, color) {
     this.speed = 2;
     this.x = PX;
     this.y = PY;
     this.dir = createVector(X - PX, Y - PY).normalize();
     this.r = 30;
+    this.vida = vida;
     this.show = function () {
-        fill("grey")
+        fill(color)
         circle(this.x, this.y, this.r)
 
     }
     this.move = function () {
         this.x += this.dir.x * this.speed;
         this.y += this.dir.y * this.speed;
-
-        //btl = { x: -29, y: -19 }
-        //bbl = { x: -29, y: 19 }
-        //btr = { x: 40, y: 19 }
-        //bbr = { x: 40, y: -19 }
-
 
     }
 }
@@ -284,25 +322,20 @@ function calcularFisicas(cuerpo, dt) {
     cuerpo.x += cuerpo.vx * dt
     cuerpo.y += cuerpo.vy * dt
 
-    // aang -> vang -> ang
     cuerpo.vang += cuerpo.aang * dt
     cuerpo.ang += cuerpo.vang * dt
-
-    // reinicio todas las aceleraciones
 
     cuerpo.ax = 0
     cuerpo.ay = 0
 }
 
 function aplicarFuerza(cuerpo, fx, fy) {
-    // cuando quiera aplicar una fuerza, la convierto enseguida en una aceleración y la aplico como una aceleración
     cuerpo.ax += fx / cuerpo.masa
     cuerpo.ay += fy / cuerpo.masa
 }
 
 function aplicarTorque(cuerpo, t) {
-    var inercia = cuerpo.masa * 1000// la inercia depende de la masa y de un factor que depende de la forma del objeto. 1000 es un número arbitrario en este caso.
-    cuerpo.aang += t / inercia
+    cuerpo.aang += t / (cuerpo.masa * 500)
 }
 
 function mostrarText(data) {
