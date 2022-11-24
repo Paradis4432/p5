@@ -25,7 +25,6 @@ function setup() {
         let r = getRandomInt(H)
         if (r % 2 == 0 && i % 2 == 0) estrellas.push({ i, r })
 
-        
     }
 }
 let fuerzaCohete = { x: 0, y: 0 }
@@ -41,7 +40,6 @@ function draw() {
         meterSpawnTimeCounter = 0
 
         let r = getRandomInt(4)
-        console.log(r)
         switch (r) {
             case 0:
                 // left wall
@@ -62,8 +60,6 @@ function draw() {
             default:
                 break;
         }
-
-
     }
 
     if (nave.x < 0 || nave.x > W || nave.y < 0 || nave.y > H) {
@@ -156,6 +152,8 @@ function draw() {
     translate(nave.x, nave.y)
     rotate(nave.ang)
     rectMode(CENTER)
+
+    
     fill("gray")
     circle(20, 0, 40)
     fill("cyan")
@@ -163,21 +161,60 @@ function draw() {
     fill("gray")
     rect(0, 0, 40, 40)
     rect(-25, 0, 10, 30)
-    fill("black")
 
-    // Instrucciones
+    //fill("white")
+    //circle(-12,0,40)
+    //circle(19,0,40)
+
     resetMatrix() // vuelvo la hoja a su lugar
 
     for (let i = 0; i < bullets.length; ++i) {
-        if (nave.vivo) bullets[i].toMouse();
-        bullets[i].show();
+        const b = bullets[i]
+        if (nave.vivo) b.toMouse();
+        b.show();
+        if (b.x > W + 10 || b.x < -10 || b.y > H + 10 || b.y < -10) {
+            let index = bullets.indexOf(b)
+            if (index > -1) bullets.splice(index, 1)
+        }
     }
 
     for (let i = 0; i < meters.length; ++i) {
-        if (nave.vivo) meters[i].move();
-        meters[i].show();
+        const m = meters[i];
+
+        if (m.x > W + 10 || m.x < -10 || m.y > H + 10 || m.y < -10) {
+            let index = meters.indexOf(m)
+            if (index > -1) meters.splice(index, 1)
+        }
+
+        dC0 = dist(m.x, m.y, nave.x - 12, nave.y) < ((m.r / 2) + (20))
+        dC1 = dist(m.x, m.y, nave.x + 19, nave.y) < ((m.r / 2) + (20))
+
+        if (dC0 || dC1) {
+            text("PERDISTE r para reinicar", 450, 450)
+            nave.vivo = false
+            meterSpawnTimeCounter = 0
+        }
+
+        for (let j = 0; j < bullets.length; j++) {
+            const b = bullets[j];
+
+            bullMeterColl = dist(m.x, m.y, b.x, b.y) < ((m.r / 2) + (b.r))
+            if (!bullMeterColl) continue
+
+            let mindex = meters.indexOf(m)
+            let bindex = bullets.indexOf(b)
+
+            if (mindex > -1 && bindex > -1){
+                meters.splice(mindex, 1)
+                bullets.splice(bindex, 1)
+
+            }
+        }
+
+        if (nave.vivo) m.move();
+        m.show();
     }
-    
+
 }
 
 function keyPressed() {
@@ -230,8 +267,14 @@ function Meteorito(X, Y, PX, PY) {
     this.move = function () {
         this.x += this.dir.x * this.speed;
         this.y += this.dir.y * this.speed;
-    }
 
+        //btl = { x: -29, y: -19 }
+        //bbl = { x: -29, y: 19 }
+        //btr = { x: 40, y: 19 }
+        //bbr = { x: 40, y: -19 }
+
+
+    }
 }
 
 function calcularFisicas(cuerpo, dt) {
@@ -273,4 +316,3 @@ function mostrarText(data) {
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
-
