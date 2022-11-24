@@ -62,7 +62,7 @@ function draw() {
     if (fin != 0) {
         clear()
         textSize(32)
-        text("jugador " + fin + " gano.", 450, 100)
+        text("jUgador " + fin + " gano.", 450, 100)
         return
     }
 
