@@ -40,7 +40,7 @@ function draw() {
     meterSpawnTimeCounter++
     if (meterSpawnTime == meterSpawnTimeCounter && nave.vivo) {
         meterSpawnTimeCounter = 0
-        var vtmp 
+        var vtmp
         var ctmp
         let r = getRandomInt(4)
         metersSpawneados++
@@ -78,16 +78,16 @@ function draw() {
       fill("red")
         text("Volaste fuera del espacio!",450, 400)
         text("PERDISTE R para reinicar", 450, 450)
-      
+
         nave.vivo = false
         meterSpawnTimeCounter = 0
       metersSpawneados = 0
     }
   textSize(50)
   fill("grey")
-  text(puntaje, 800, 100) 
+  text(puntaje, 800, 100)
   textSize(12)
-    
+
     if(!keyIsDown(UP_ARROW)) pressedSegs = 0
     // Si tengo presionada la tecla de arriba...
     if (keyIsDown(UP_ARROW) && nave.vivo) {
@@ -175,17 +175,17 @@ function draw() {
     translate(nave.x, nave.y)
     rotate(nave.ang)
     rectMode(CENTER)
-  
+
       fill("#2196F3")
       if(pressedSegs > 0) rect(-30,0,10,-25)
       fill("#03A9F4")
       if(pressedSegs > 30)rect(-35,0,8,-20)
       fill("#00BCD4")
       if(pressedSegs > 60)rect(-40,0,6,-15)
-    
+
     fill("gray")
     circle(0,0,50)
-  
+
     circle(12, 0, 40)
     fill("cyan")
     circle(12, 0, 30)
@@ -195,8 +195,8 @@ function draw() {
 
     //circle(-12,0,40)
     //circle(19,0,40)
-    
-    
+
+
 
     resetMatrix() // vuelvo la hoja a su lugar
 
@@ -234,8 +234,8 @@ function draw() {
 
             bullMeterColl = dist(m.x, m.y, b.x, b.y) < ((m.r / 2) + (b.r))
             if (!bullMeterColl) continue
-            
-            
+
+
             let mindex = meters.indexOf(m)
             let bindex = bullets.indexOf(b)
 
@@ -248,9 +248,27 @@ function draw() {
                 meters.splice(mindex, 1)
                 bullets.splice(bindex, 1)
             puntaje += 1
-                
+
 
             }
+        }
+
+        for (let j = 0; j < meters.length; j++) {
+            if(true){
+                // basic collide working missing details 
+                // al chocar de costado ; invertir la direccion no sirve
+                continue
+            }
+            const m1 = meters[j];
+
+            meterColl = dist(m.x, m.y, m1.x, m1.y) < ((m.r / 2) + (m1.r / 2))
+            if(!meterColl) continue
+
+            m.dir.x *= -1
+            m.dir.y *= -1
+            m1.dir.x *= -1
+            m1.dir.y *= -1
+
         }
 
         if (nave.vivo) m.move();
@@ -261,6 +279,9 @@ function draw() {
 
 function keyPressed() {
     if (keyCode == 32 && nave.vivo) {
+
+        
+
         bullets.push(new Bullet(cos(nave.ang) + nave.x, sin(nave.ang) + nave.y, nave.x, nave.y))
         aplicarFuerza(nave, -(cos(nave.ang) * multiplicadorDisparo), -(sin(nave.ang) * multiplicadorDisparo))
     }
@@ -276,6 +297,7 @@ function keyPressed() {
         meters = []
         puntaje = 0
     }
+    
 
 }
 
