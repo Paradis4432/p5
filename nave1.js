@@ -17,6 +17,13 @@ var meters = [];
 var holes = [];
 var meterSpawnTime = 60;
 var meterSpawnTimeCounter = 0;
+var holeSpawnTime = 120;
+var holeSpawnTimeCounter = 0;
+var holeGrowTime = 30;
+var holeGrowTimeCounter = 0;
+var splotionSecsLeft = 0
+var tempSplotionX = 0
+var tempSplotionY = 0
 var estrellas = []
 var pressedSegs = 0
 var puntaje = 0
@@ -30,11 +37,13 @@ function setup() {
 
     }
 
-    holes.push(new Hole(450, 450, 200, 0))
-    holes.push(new Hole(600, 600, 200, 255))
+    //holes.push(new Hole(300, 300, 150, 0))
+    //holes.push(new Hole(600, 600, 150, 0))
+    //holes.push(new Hole(500, 500, 150, 0))
 }
 let fuerzaCohete = { x: 0, y: 0 }
 let dt = 0
+let spawned = false
 
 function draw() {
     background(20); // sacar para hyperspacio
@@ -43,6 +52,15 @@ function draw() {
     dt = deltaTime / 1000
 
     meterSpawnTimeCounter++
+    holeSpawnTimeCounter++
+    holeGrowTimeCounter++
+    if(holeGrowTime == holeGrowTimeCounter && nave.vivo){
+        for (const hole of holes) {
+            hole.r += 1
+        }
+        holeGrowTimeCounter = 0
+    }
+
     if (meterSpawnTime == meterSpawnTimeCounter && nave.vivo) {
         meterSpawnTimeCounter = 0
         var vtmp
@@ -76,6 +94,29 @@ function draw() {
             default:
                 break;
         }
+    }
+
+    if(holeSpawnTime == holeSpawnTimeCounter && nave.vivo && !spawned){
+        holeSpawnTimeCounter = 0
+
+        let r = getRandomInt(estrellas.length)
+        
+        for (const star of estrellas) {
+            if(!spawned && r % 3 == 0){
+                holes.push(new Hole(estrellas[r].i, estrellas[r].r, 10, 0))
+                tempSplotionX = estrellas[r].i
+                tempSplotionY = estrellas[r].r
+                splotionSecsLeft = 20
+                spawned = true
+            }
+        }
+        spawned = false
+    }
+
+    if (splotionSecsLeft > 0){
+        fill("red")
+        circle(tempSplotionX, tempSplotionY, (50 - splotionSecsLeft) * 6)
+        splotionSecsLeft--
     }
 
     if (nave.x < 0 || nave.x > W || nave.y < 0 || nave.y > H) {
@@ -167,6 +208,7 @@ function draw() {
     data.push(["vang", nave.vang])
     data.push(["aang", nave.aang])
     data.push(["timer", meterSpawnTimeCounter])
+    data.push(["holeSpawnTimeCounter", holeSpawnTimeCounter])
     nave.aang = 0
     mostrarText(data)
 
@@ -309,6 +351,7 @@ function keyPressed() {
         nave.vivo = true
         bullets = []
         meters = []
+        holes = []
         puntaje = 0
     }
 
@@ -332,7 +375,7 @@ function Hole(X, Y, R, C) {
             
             let holeDir = createVector(hole.x - nave.x, hole.y - nave.y).normalize();
             let f = ((hole.r + 250) - dist(nave.x, nave.y, hole.x, hole.y)) * (hole.r / 200)
-            if (f < 0) return
+            if (f < 0 || true) return
 
             if (hole.color == 0) aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
             if (hole.color == 255) aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
@@ -372,16 +415,6 @@ function Meteorito(X, Y, PX, PY, vida, color) {
     this.ang = 0
     this.aang = 0
 
-    var nave = {
-        x: 200, y: 200,
-        vx: 0, vy: 0,
-        ax: 0, ay: 0,
-        ang: 0,
-        vang: 0,
-        aang: 0,
-        masa: 3, vivo: true
-    }
-
     this.r = 30;
     this.vida = vida;
 
@@ -408,18 +441,6 @@ function Meteorito(X, Y, PX, PY, vida, color) {
             if (hole.color == 255) aplicarFuerza(this, -(holeDir.x * f), -(holeDir.y * f))
         }
 
-    }
-
-    this.appFuerzaAgu = function () {
-        let holeDir = createVector(450 - nave.x, 450 - nave.y).normalize();
-        let f = ((this.r + 250) - dist(nave.x, nave.y, 450, 450)) * (this.r / 200)
-        if (f < 0) return
-
-        if (this.color == 0) aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
-        if (this.color == 255) aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
-        for (const met of meters) {
-
-        }
     }
 }
 
@@ -457,3 +478,5 @@ function mostrarText(data) {
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
+
+const delay = ms => new Promise(res => setTimeout(res, ms))
