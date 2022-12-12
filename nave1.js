@@ -30,15 +30,17 @@ function setup() {
 
     }
 
-    holes.push(new Hole(450, 450, 100, 255))
+    holes.push(new Hole(450, 450, 200, 0))
+    holes.push(new Hole(600, 600, 200, 255))
 }
 let fuerzaCohete = { x: 0, y: 0 }
+let dt = 0
 
 function draw() {
     background(20); // sacar para hyperspacio
 
-    var dt = deltaTime / 1000
     let data = []
+    dt = deltaTime / 1000
 
     meterSpawnTimeCounter++
     if (meterSpawnTime == meterSpawnTimeCounter && nave.vivo) {
@@ -141,6 +143,7 @@ function draw() {
     data.push(["ay", nave.ay])
 
     data.push(["masa", nave.masa])
+    data.push(["dt", dt])
 
 
     // Aplico una fricción proporcional y opuesta a la velocidad de la nave
@@ -286,7 +289,7 @@ function holeManager() {
         const hole = holes[i];
 
         hole.show()
-        hole.appFuerza()
+        hole.appFuerzaHoles()
     }
 }
 
@@ -324,15 +327,15 @@ function Hole(X, Y, R, C) {
         circle(this.x, this.y, this.r)
     }
 
-    this.appFuerza = function () {
-        let holeDir = createVector(450 - nave.x, 450 - nave.y).normalize();
-        let f = ((this.r + 250) - dist(nave.x, nave.y, 450, 450)) * (this.r / 200)
-        if (f < 0) return
-        
-        if(this.color == 0) aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
-        if(this.color == 255) aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
-        for (const met of meters) {
+    this.appFuerzaHoles = function () {
+        for (const hole of holes) {
             
+            let holeDir = createVector(hole.x - nave.x, hole.y - nave.y).normalize();
+            let f = ((hole.r + 250) - dist(nave.x, nave.y, hole.x, hole.y)) * (hole.r / 200)
+            if (f < 0) return
+
+            if (hole.color == 0) aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
+            if (hole.color == 255) aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
         }
     }
 }
@@ -359,16 +362,64 @@ function Meteorito(X, Y, PX, PY, vida, color) {
     this.x = PX;
     this.y = PY;
     this.dir = createVector(X - PX, Y - PY).normalize();
+    this.vx = 0
+    this.vy = 0
+    this.ax = 0
+    this.ay = 0
+    this.masa = 3
+
+    this.vang = 0
+    this.ang = 0
+    this.aang = 0
+
+    var nave = {
+        x: 200, y: 200,
+        vx: 0, vy: 0,
+        ax: 0, ay: 0,
+        ang: 0,
+        vang: 0,
+        aang: 0,
+        masa: 3, vivo: true
+    }
+
     this.r = 30;
     this.vida = vida;
+
+    fuerzaMet = {
+        // reemplazar con valor aleatorio entre 20 y 30k para velocidades distintas
+        x: this.dir.x * 25000,
+        y: this.dir.y * 25000
+    }
+    aplicarFuerza(this, fuerzaMet.x, fuerzaMet.y)
+
     this.show = function () {
         fill(color)
         circle(this.x, this.y, this.r)
 
     }
     this.move = function () {
-        this.x += this.dir.x * this.speed;
-        this.y += this.dir.y * this.speed;
+        calcularFisicas(this, dt)
+        for (const hole of holes) {
+            let holeDir = createVector(hole.x - this.x, hole.y - this.y).normalize();
+            let f = ((hole.r + 250) - dist(this.x, this.y, hole.x, hole.y)) * (hole.r / 200)
+            if (f < 0) return
+
+            if (hole.color == 0) aplicarFuerza(this, holeDir.x * f, holeDir.y * f)
+            if (hole.color == 255) aplicarFuerza(this, -(holeDir.x * f), -(holeDir.y * f))
+        }
+
+    }
+
+    this.appFuerzaAgu = function () {
+        let holeDir = createVector(450 - nave.x, 450 - nave.y).normalize();
+        let f = ((this.r + 250) - dist(nave.x, nave.y, 450, 450)) * (this.r / 200)
+        if (f < 0) return
+
+        if (this.color == 0) aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
+        if (this.color == 255) aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
+        for (const met of meters) {
+
+        }
     }
 }
 
