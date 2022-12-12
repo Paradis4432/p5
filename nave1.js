@@ -14,6 +14,7 @@ var multiplicadorFriccion = 0
 var multiplicadorFriccionGiro = 1500
 var bullets = [];
 var meters = [];
+var holes = [];
 var meterSpawnTime = 60;
 var meterSpawnTimeCounter = 0;
 var estrellas = []
@@ -28,11 +29,13 @@ function setup() {
         if (r % 2 == 0 && i % 2 == 0) estrellas.push({ i, r })
 
     }
+
+    holes.push(new Hole(450, 450, 100, 255))
 }
 let fuerzaCohete = { x: 0, y: 0 }
 
 function draw() {
-    background(0); // sacar para hyperspacio
+    background(20); // sacar para hyperspacio
 
     var dt = deltaTime / 1000
     let data = []
@@ -44,29 +47,29 @@ function draw() {
         var ctmp
         let r = getRandomInt(4)
         metersSpawneados++
-        if(metersSpawneados % 5 == 0){
-          vtmp = 2
-          ctmp = "red"
+        if (metersSpawneados % 5 == 0) {
+            vtmp = 2
+            ctmp = "red"
         } else {
-          vtmp = 1
-          ctmp = "rgb(163,158,158)"
+            vtmp = 1
+            ctmp = "rgb(163,158,158)"
         }
         switch (r) {
             case 0:
                 // left wall
-                meters.push(new Meteorito(nave.x, nave.y, 0, random(H),vtmp,ctmp))
+                meters.push(new Meteorito(nave.x, nave.y, 0, random(H), vtmp, ctmp))
                 break;
             case 1:
                 // right wall
-                meters.push(new Meteorito(nave.x, nave.y, W, random(H),vtmp,ctmp))
+                meters.push(new Meteorito(nave.x, nave.y, W, random(H), vtmp, ctmp))
                 break;
             case 2:
                 // top wall
-                meters.push(new Meteorito(nave.x, nave.y, random(W),0,vtmp,ctmp))
+                meters.push(new Meteorito(nave.x, nave.y, random(W), 0, vtmp, ctmp))
                 break;
             case 3:
                 // bottom wall
-                meters.push(new Meteorito(nave.x, nave.y, random(W), H,vtmp,ctmp))
+                meters.push(new Meteorito(nave.x, nave.y, random(W), H, vtmp, ctmp))
                 break;
             default:
                 break;
@@ -74,25 +77,24 @@ function draw() {
     }
 
     if (nave.x < 0 || nave.x > W || nave.y < 0 || nave.y > H) {
-      textSize(32)
-      fill("red")
-        text("Volaste fuera del espacio!",450, 400)
+        textSize(32)
+        fill("red")
+        text("Volaste fuera del espacio!", 450, 400)
         text("PERDISTE R para reinicar", 450, 450)
-
         nave.vivo = false
         meterSpawnTimeCounter = 0
-      metersSpawneados = 0
+        metersSpawneados = 0
     }
-  textSize(50)
-  fill("grey")
-  text(puntaje, 800, 100)
-  textSize(12)
+    textSize(50)
+    fill("grey")
+    text(puntaje, 800, 100)
+    textSize(12)
 
-    if(!keyIsDown(UP_ARROW)) pressedSegs = 0
+    if (!keyIsDown(UP_ARROW)) pressedSegs = 0
     // Si tengo presionada la tecla de arriba...
     if (keyIsDown(UP_ARROW) && nave.vivo) {
-      pressed = true
-      pressedSegs += 1
+        pressed = true
+        pressedSegs += 1
         // Obtengo la dirección de la nave con trigonometría.
         // Esto me da un vector de longitud 1
         var direccionNave = {
@@ -171,20 +173,22 @@ function draw() {
         circle(es.i, es.r, 3)
     }
 
+    holeManager()
+
     // Dibujado de la nave
     translate(nave.x, nave.y)
     rotate(nave.ang)
     rectMode(CENTER)
 
-      fill("#2196F3")
-      if(pressedSegs > 0) rect(-30,0,10,-25)
-      fill("#03A9F4")
-      if(pressedSegs > 30)rect(-35,0,8,-20)
-      fill("#00BCD4")
-      if(pressedSegs > 60)rect(-40,0,6,-15)
+    fill("#2196F3")
+    if (pressedSegs > 0) rect(-30, 0, 10, -25)
+    fill("#03A9F4")
+    if (pressedSegs > 30) rect(-35, 0, 8, -20)
+    fill("#00BCD4")
+    if (pressedSegs > 60) rect(-40, 0, 6, -15)
 
     fill("gray")
-    circle(0,0,50)
+    circle(0, 0, 50)
 
     circle(12, 0, 40)
     fill("cyan")
@@ -221,7 +225,7 @@ function draw() {
         dC0 = dist(m.x, m.y, nave.x, nave.y) < ((m.r / 2) + (26))
         //dC1 = dist(m.x, m.y, nave.x + 19, nave.y) < ((m.r / 2) + (20))
 
-        if (dC0) {
+        if (dC0 && false) {
             fill("red")
             textSize(32)
             text("PERDISTE! R para reinicar", 450, 450)
@@ -239,22 +243,22 @@ function draw() {
             let mindex = meters.indexOf(m)
             let bindex = bullets.indexOf(b)
 
-            if (mindex > -1 && bindex > -1){
-              if(m.vida == 2){
-                m.vida--
-                bullets.splice(bindex, 1)
-                continue
-              }
+            if (mindex > -1 && bindex > -1) {
+                if (m.vida == 2) {
+                    m.vida--
+                    bullets.splice(bindex, 1)
+                    continue
+                }
                 meters.splice(mindex, 1)
                 bullets.splice(bindex, 1)
-            puntaje += 1
+                puntaje += 1
 
 
             }
         }
 
         for (let j = 0; j < meters.length; j++) {
-            if(true){
+            if (true) {
                 // basic collide working missing details 
                 // al chocar de costado ; invertir la direccion no sirve
                 continue
@@ -262,7 +266,7 @@ function draw() {
             const m1 = meters[j];
 
             meterColl = dist(m.x, m.y, m1.x, m1.y) < ((m.r / 2) + (m1.r / 2))
-            if(!meterColl) continue
+            if (!meterColl) continue
 
             m.dir.x *= -1
             m.dir.y *= -1
@@ -277,11 +281,18 @@ function draw() {
 
 }
 
+function holeManager() {
+    for (let i = 0; i < holes.length; i++) {
+        const hole = holes[i];
+
+        hole.show()
+        hole.appFuerza()
+    }
+}
+
+
 function keyPressed() {
     if (keyCode == 32 && nave.vivo) {
-
-        
-
         bullets.push(new Bullet(cos(nave.ang) + nave.x, sin(nave.ang) + nave.y, nave.x, nave.y))
         aplicarFuerza(nave, -(cos(nave.ang) * multiplicadorDisparo), -(sin(nave.ang) * multiplicadorDisparo))
     }
@@ -297,8 +308,33 @@ function keyPressed() {
         meters = []
         puntaje = 0
     }
-    
 
+
+}
+
+function Hole(X, Y, R, C) {
+
+    this.x = X
+    this.y = Y
+    this.r = R
+    this.color = C // 0 for black 255 for white
+
+    this.show = function () {
+        fill(this.color)
+        circle(this.x, this.y, this.r)
+    }
+
+    this.appFuerza = function () {
+        let holeDir = createVector(450 - nave.x, 450 - nave.y).normalize();
+        let f = ((this.r + 250) - dist(nave.x, nave.y, 450, 450)) * (this.r / 200)
+        if (f < 0) return
+        
+        if(this.color == 0) aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
+        if(this.color == 255) aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
+        for (const met of meters) {
+            
+        }
+    }
 }
 
 function Bullet(X, Y, PX, PY) {
@@ -333,7 +369,6 @@ function Meteorito(X, Y, PX, PY, vida, color) {
     this.move = function () {
         this.x += this.dir.x * this.speed;
         this.y += this.dir.y * this.speed;
-
     }
 }
 
