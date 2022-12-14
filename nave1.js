@@ -15,6 +15,7 @@ var multiplicadorFriccionGiro = 1500
 var bullets = [];
 var meters = [];
 var holes = [];
+var estrellas = []
 var meterSpawnTime = 60;
 var meterSpawnTimeCounter = 0;
 var holeSpawnTime = 120;
@@ -24,10 +25,18 @@ var holeGrowTimeCounter = 0;
 var splotionSecsLeft = 0
 var tempSplotionX = 0
 var tempSplotionY = 0
-var estrellas = []
 var pressedSegs = 0
 var puntaje = 0
 var metersSpawneados = 0
+var debug = false
+
+/*
+# TODO 
+ eliminar estrella al implosionar
+ disparo de antimateria -> al reducir radio de agujero negro a 0 transformar a agujero blanco -> al disparar lo suficiente al agujero blanco desaparecer
+ colision de asteroides
+ agujero negro come a asteroides o nave al ser mas grande que estos
+*/
 const H = 900; const W = 900
 function setup() {
     createCanvas(H, W);
@@ -37,8 +46,8 @@ function setup() {
 
     }
 
-    //holes.push(new Hole(300, 300, 150, 0))
-    //holes.push(new Hole(600, 600, 150, 0))
+    //holes.push(new Hole(500, 300, 150, 0))
+    //holes.push(new Hole(600, 600, 150, 255))
     //holes.push(new Hole(500, 500, 150, 0))
 }
 let fuerzaCohete = { x: 0, y: 0 }
@@ -54,7 +63,7 @@ function draw() {
     meterSpawnTimeCounter++
     holeSpawnTimeCounter++
     holeGrowTimeCounter++
-    if(holeGrowTime == holeGrowTimeCounter && nave.vivo){
+    if (holeGrowTime == holeGrowTimeCounter && nave.vivo) {
         for (const hole of holes) {
             hole.r += 1
         }
@@ -96,14 +105,14 @@ function draw() {
         }
     }
 
-    if(holeSpawnTime == holeSpawnTimeCounter && nave.vivo && !spawned){
+    if (holeSpawnTime == holeSpawnTimeCounter && nave.vivo && !spawned) {
         holeSpawnTimeCounter = 0
 
         let r = getRandomInt(estrellas.length)
-        
+
         for (const star of estrellas) {
-            if(!spawned && r % 3 == 0){
-                holes.push(new Hole(estrellas[r].i, estrellas[r].r, 10, 0))
+            if (!spawned && r % 3 == 0) {
+                holes.push(new Hole(estrellas[r].i, estrellas[r].r, 10, r % 2 == 0 ? 0 : 255))
                 tempSplotionX = estrellas[r].i
                 tempSplotionY = estrellas[r].r
                 splotionSecsLeft = 20
@@ -113,7 +122,7 @@ function draw() {
         spawned = false
     }
 
-    if (splotionSecsLeft > 0){
+    if (splotionSecsLeft > 0) {
         fill("red")
         circle(tempSplotionX, tempSplotionY, (50 - splotionSecsLeft) * 6)
         splotionSecsLeft--
@@ -218,7 +227,12 @@ function draw() {
         circle(es.i, es.r, 3)
     }
 
-    holeManager()
+    for (let i = 0; i < holes.length; i++) {
+        const hole = holes[i];
+
+        hole.show()
+        hole.appFuerzaHoles()
+    }
 
     // Dibujado de la nave
     translate(nave.x, nave.y)
@@ -270,7 +284,7 @@ function draw() {
         dC0 = dist(m.x, m.y, nave.x, nave.y) < ((m.r / 2) + (26))
         //dC1 = dist(m.x, m.y, nave.x + 19, nave.y) < ((m.r / 2) + (20))
 
-        if (dC0 && false) {
+        if (dC0 && !debug) {
             fill("red")
             textSize(32)
             text("PERDISTE! R para reinicar", 450, 450)
@@ -303,7 +317,7 @@ function draw() {
         }
 
         for (let j = 0; j < meters.length; j++) {
-            if (true) {
+            if (debug) {
                 // basic collide working missing details 
                 // al chocar de costado ; invertir la direccion no sirve
                 continue
@@ -326,16 +340,6 @@ function draw() {
 
 }
 
-function holeManager() {
-    for (let i = 0; i < holes.length; i++) {
-        const hole = holes[i];
-
-        hole.show()
-        hole.appFuerzaHoles()
-    }
-}
-
-
 function keyPressed() {
     if (keyCode == 32 && nave.vivo) {
         bullets.push(new Bullet(cos(nave.ang) + nave.x, sin(nave.ang) + nave.y, nave.x, nave.y))
@@ -346,6 +350,8 @@ function keyPressed() {
         nave.y = 200
         nave.vx = 0
         nave.vy = 0
+        nave.ax = 0
+        nave.ay = 0
         nave.ang = 0
         nave.vang = 0
         nave.vivo = true
@@ -353,6 +359,8 @@ function keyPressed() {
         meters = []
         holes = []
         puntaje = 0
+        holeGrowTimeCounter = 0
+        holeSpawnTimeCounter = 0
     }
 
 
@@ -372,10 +380,10 @@ function Hole(X, Y, R, C) {
 
     this.appFuerzaHoles = function () {
         for (const hole of holes) {
-            
+
             let holeDir = createVector(hole.x - nave.x, hole.y - nave.y).normalize();
             let f = ((hole.r + 250) - dist(nave.x, nave.y, hole.x, hole.y)) * (hole.r / 200)
-            if (f < 0 || true) return
+            if (f < 0 || debug) return
 
             if (hole.color == 0) aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
             if (hole.color == 255) aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
