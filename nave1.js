@@ -317,27 +317,37 @@ function draw() {
         }
 
         for (let j = 0; j < meters.length; j++) {
-            if (debug) {
-                // basic collide working missing details 
-                // al chocar de costado ; invertir la direccion no sirve
-                continue
-            }
             const m1 = meters[j];
 
             meterColl = dist(m.x, m.y, m1.x, m1.y) < ((m.r / 2) + (m1.r / 2))
             if (!meterColl) continue
 
-            m.dir.x *= -1
-            m.dir.y *= -1
-            m1.dir.x *= -1
-            m1.dir.y *= -1
-
+            // rebote de asteroides
+            let dx = m1.x - m.x
+            let dy = m1.y - m.y
+            let minDist = m1.r / 2 + m.r / 2
+            // calcula el angulo en el que chocan
+            let angle = atan2(dy, dx)
+            // calcula el nuevo angulo de los asteroides
+            let targetX = m.x + cos(angle) * minDist
+            let targetY = m.y + sin(angle) * minDist
+            // calcula y aplica la nueva velocidad
+            let ax = (targetX - m1.x) * 5
+            let ay = (targetY - m1.y) * 5
+            m.vx -= ax
+            m.vy -= ay
+            m1.vx += ax
+            m1.vy += ay
         }
 
         if (nave.vivo) m.move();
         m.show();
     }
 
+}
+
+function mouseClicked(event){
+    holes.push(new Hole(mouseX, mouseY, 250, 0))
 }
 
 function keyPressed() {
@@ -382,11 +392,17 @@ function Hole(X, Y, R, C) {
         for (const hole of holes) {
 
             let holeDir = createVector(hole.x - nave.x, hole.y - nave.y).normalize();
-            let f = ((hole.r + 250) - dist(nave.x, nave.y, hole.x, hole.y)) * (hole.r / 200)
+            let f = ((hole.r + 250) - dist(nave.x, nave.y, hole.x, hole.y)) * (hole.r / 100)
             if (f < 0 || debug) return
 
-            if (hole.color == 0) aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
-            if (hole.color == 255) aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
+            if (hole.color == 0){
+                console.log("black")
+                aplicarFuerza(nave, holeDir.x * f, holeDir.y * f)
+            }
+            if (hole.color == 255){
+                console.log("white")
+                aplicarFuerza(nave, -(holeDir.x * f), -(holeDir.y * f))
+            }
         }
     }
 }
@@ -443,6 +459,7 @@ function Meteorito(X, Y, PX, PY, vida, color) {
         for (const hole of holes) {
             let holeDir = createVector(hole.x - this.x, hole.y - this.y).normalize();
             let f = ((hole.r + 250) - dist(this.x, this.y, hole.x, hole.y)) * (hole.r / 200)
+            
             if (f < 0) return
 
             if (hole.color == 0) aplicarFuerza(this, holeDir.x * f, holeDir.y * f)
