@@ -1,5 +1,5 @@
 var nave = {
-    x: 200, y: 200,
+    x: 500, y: 500,
     vx: 0, vy: 0,
     ax: 0, ay: 0,
     ang: 0,
@@ -28,7 +28,7 @@ var tempSplotionY = 0
 var pressedSegs = 0
 var puntaje = 0
 var metersSpawneados = 0
-var debug = false
+var debug = true
 
 /*
 # TODO 
@@ -46,7 +46,7 @@ function setup() {
 
     }
 
-    //holes.push(new Hole(500, 300, 150, 0))
+    //holes.push(new Hole(500, 300, 150, 255))
     //holes.push(new Hole(600, 600, 150, 255))
     //holes.push(new Hole(500, 500, 150, 0))
 }
@@ -164,6 +164,9 @@ function draw() {
         //text("fuerzaCohete.x: " + fuerzaCohete.x.toFixed(3), 220, 20)
         // y lo aplico como fuerza
         aplicarFuerza(nave, fuerzaCohete.x, fuerzaCohete.y)
+
+
+        
     }
     if (keyIsDown(DOWN_ARROW) && nave.vivo) {
         // Obtengo la dirección de la nave con trigonometría.
@@ -344,10 +347,6 @@ function draw() {
         m.show();
     }
 
-}
-
-function mouseClicked(event){
-    holes.push(new Hole(mouseX, mouseY, 250, 0))
 }
 
 function keyPressed() {
